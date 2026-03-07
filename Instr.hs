@@ -41,7 +41,7 @@ runInstr (Instr op a b) f =
       pure f
     Lod -> do
       m <- readMem a
-      f <- writeRegM a m f
+      f <- writeRegM b m f
       pure f
     Sto -> do
       x <- readRegM a f
