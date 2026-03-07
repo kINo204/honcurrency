@@ -5,6 +5,7 @@ module Program
     imm,
     lod,
     sto,
+    cas,
   )
 where
 
@@ -33,3 +34,6 @@ lod a b = emit $ Instr Lod a b
 
 sto :: Operand -> Operand -> Program
 sto a b = emit $ Instr Sto a b
+
+cas :: Operand -> Operand -> Program
+cas a b = emit $ Instr Cas a b

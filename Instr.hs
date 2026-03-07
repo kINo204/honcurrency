@@ -7,6 +7,7 @@ module Instr
   )
 where
 
+import Control.Monad
 import Machine
 
 data Operator
@@ -48,6 +49,13 @@ runInstr (Instr op a b) f =
     Sto -> do
       x <- readRegM a f
       writeMem b x
+      f <- mapPcM (+ 1) f
+      pure f
+    Cas -> do
+      m <- readMem b
+      f <- writeRegM a m f
+      when (m == 0) $
+        writeMem b 1
       f <- mapPcM (+ 1) f
       pure f
     _ -> pure f
