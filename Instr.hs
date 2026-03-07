@@ -2,6 +2,7 @@
 module Instr
   ( Instr (..),
     Operator (..),
+    Operand,
     runInstr,
   )
 where
