@@ -37,15 +37,17 @@ runInstr (Instr op a b) f =
       f <- mapPcM (+ 1) f
       pure f
     Imm -> do
-      f <- mapPcM (+ 1) f
       f <- writeRegM a b f
+      f <- mapPcM (+ 1) f
       pure f
     Lod -> do
       m <- readMem a
       f <- writeRegM b m f
+      f <- mapPcM (+ 1) f
       pure f
     Sto -> do
       x <- readRegM a f
       writeMem b x
+      f <- mapPcM (+ 1) f
       pure f
     _ -> pure f
