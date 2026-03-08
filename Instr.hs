@@ -23,10 +23,12 @@ data Operator
     Cas |
     -- Debugging
     Prt | Prs | Err
+  deriving (Show)
 
 type Operand = Int -- TODO: Nil operand
 
 data Instr = Instr Operator Operand Operand
+  deriving (Show)
 
 runInstr :: Instr -> Frame -> Execution Frame
 runInstr (Instr op a b) f =
