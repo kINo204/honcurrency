@@ -24,10 +24,10 @@ step dbg prog f
               (Instr Prt (Num rs) _) -> do
                 x <- lift $ readRegM rs f
                 tell ["R[" ++ show rs ++ "] = " ++ show x]
-                pure f
+                lift $ mapPcM (+ 1) f
               (Instr Prs (Msg msg) _) -> do
                 tell [msg]
-                pure f
+                lift $ mapPcM (+ 1) f
               _ -> lift $ runInstr instr f
   where
     done = pc f >= length prog
