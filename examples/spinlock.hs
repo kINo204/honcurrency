@@ -1,6 +1,5 @@
 import Conc.Spinlock
 import Core.Program
-import Core.Scheduler
 
 p1 = program $ do
   spinLock 0 2

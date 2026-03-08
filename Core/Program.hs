@@ -9,12 +9,14 @@ module Core.Program
 
     frame, machine,
     Operand(..),
+    schedule,
   )
 where
 
 import Control.Monad.Writer
 import Core.Instr
-import Core.Machine (frame, machine)
+import Core.Machine
+import Core.Scheduler
 
 type Program = Writer [Instr] ()
 
