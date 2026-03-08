@@ -1,0 +1,35 @@
+name: Build and Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Haskell
+      uses: haskell/actions/setup@v2
+      with:
+        ghc-version: '9.2.5'
+        cabal-version: '3.6'
+
+    - name: Build examples
+      run: |
+        New-Item -ItemType Directory -Force -Path build
+        Get-ChildItem examples/*.hs | ForEach-Object {
+          $base = $_.BaseName
+          ghc -outputdir build -o "build/$base.exe" $_.FullName
+        }
+      shell: pwsh
+
+    - name: Upload binaries to release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/*.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
