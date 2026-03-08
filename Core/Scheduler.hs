@@ -42,9 +42,11 @@ stepN t prog f
 once :: Int -> [Program] -> [Frame] -> Trace [Frame]
 once t progs frames =
   sequence
-    [ do
-        tell ["running thread " ++ show i]
-        stepN t p f
+    [ let done = pc f >= length p
+       in do
+            unless done $
+              tell ["running thread " ++ show i]
+            stepN t p f
       | (p, f, i) <- zip3 progs frames [1 .. (length progs)]
     ]
 
