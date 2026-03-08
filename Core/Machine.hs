@@ -1,4 +1,4 @@
-module Machine
+module Core.Machine
   ( Frame (..), Machine (..),
     frame, machine,
     Execution (..),

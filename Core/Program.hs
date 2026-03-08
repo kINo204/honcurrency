@@ -1,14 +1,19 @@
-module Program
-  ( program,
+module Core.Program
+  ( Program, 
+    program,
     add, sub, imm,
     lod, sto,
     cas,
     br, btr, bfs,
+
+    frame, machine,
+    Operand(..),
   )
 where
 
 import Control.Monad.Writer
-import Instr
+import Core.Instr
+import Core.Machine (frame, machine)
 
 type Program = Writer [Instr] ()
 
@@ -36,7 +41,7 @@ sto rs ma = emit $ Instr Sto (Num rs) (Num ma)
 cas :: Int -> Int -> Program
 cas rd ma = emit $ Instr Cas (Num rd) (Num ma)
 
-br  :: Operand -> Program
+br :: Operand -> Program
 br dpc@(Num _) = emit $ Instr Br dpc (Num 0)
 br lab@(Msg _) = emit $ Instr Br lab (Num 0)
 

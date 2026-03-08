@@ -1,5 +1,5 @@
 {- HLINT ignore "Redundant pure" -}
-module Instr
+module Core.Instr
   ( Instr (..),
     Operator (..),
     Operand (..),
@@ -8,7 +8,7 @@ module Instr
 where
 
 import Control.Monad
-import Machine
+import Core.Machine
 
 data Operator
   = -- Arithmetic
@@ -66,16 +66,12 @@ runInstr (Instr op (Num a) (Num b)) f =
       pure f
     Btr -> do
       x <- readRegM b f
-      if x == 1
-        then
-          mapPcM (+ a) f
-        else pure f
+      let dpc = if x /= 0 then a else 1
+       in mapPcM (+ dpc) f
     Bfs -> do
       x <- readRegM b f
-      if x == 0
-        then
-          mapPcM (+ a) f
-        else pure f
+      let dpc = if x == 0 then a else 1
+       in mapPcM (+ dpc) f
     _ -> pure f
 
 runInstr (Instr op (Msg a) (Num b)) f =
