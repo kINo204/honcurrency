@@ -5,6 +5,7 @@ module Core.Program
     lod, sto,
     cas,
     br, btr, bfs,
+    prt, prs,
 
     frame, machine,
     Operand(..),
@@ -52,3 +53,9 @@ btr rs lab@(Msg _) = emit $ Instr Btr lab (Num rs)
 bfs :: Int -> Operand -> Program
 bfs rs dpc@(Num _) = emit $ Instr Bfs dpc (Num rs)
 bfs rs lab@(Msg _) = emit $ Instr Bfs lab (Num rs)
+
+prt :: Int -> Program
+prt rs = emit $ Instr Prt (Num rs) (Num 0)
+
+prs :: String -> Program
+prs msg = emit $ Instr Prs (Msg msg) (Num 0)
