@@ -13,13 +13,13 @@ type Trace a = WriterT [String] Execution a
 traceOf :: Trace a -> Execution [String]
 traceOf = execWriterT
 
-step :: Program -> Frame -> Trace Frame
-step prog f
+step :: Bool -> Program -> Frame -> Trace Frame
+step dbg prog f
   | done = pure f
   | otherwise =
       let instr = prog !! pc f
        in do
-            tell [show (pc f) ++ ": " ++ show instr]
+            when dbg $ tell [show (pc f) ++ ": " ++ show instr]
             case instr of
               (Instr Prt (Num rs) _) -> do
                 x <- lift $ readRegM rs f
@@ -32,21 +32,21 @@ step prog f
   where
     done = pc f >= length prog
 
-stepN :: Int -> Program -> Frame -> Trace Frame
-stepN t prog f
-  | t == 1 = step prog f
+stepN :: Bool -> Int -> Program -> Frame -> Trace Frame
+stepN dbg t prog f
+  | t == 1 = step dbg prog f
   | otherwise = do
-      f <- step prog f
-      stepN (t - 1) prog f
+      f <- step dbg prog f
+      stepN dbg (t - 1) prog f
 
-once :: Int -> [Program] -> [Frame] -> Trace [Frame]
-once t progs frames =
+once :: Bool -> Int -> [Program] -> [Frame] -> Trace [Frame]
+once dbg t progs frames =
   sequence
     [ let done = pc f >= length p
        in do
-            unless done $
+            when (dbg && not done) $
               tell ["running thread " ++ show i]
-            stepN t p f
+            stepN dbg t p f
       | (p, f, i) <- zip3 progs frames [1 .. (length progs)]
     ]
 
@@ -58,20 +58,19 @@ dones progs frames =
       | (p, f) <- zip progs frames
     ]
 
-loop :: Int -> [Program] -> [Frame] -> Trace [Frame]
-loop t progs frames = do
+loop :: Bool -> Int -> [Program] -> [Frame] -> Trace [Frame]
+loop dbg t progs frames = do
   ds <- dones progs frames
   if not $ and ds
     then do
-      frames <- once t progs frames
-      loop t progs frames
+      frames <- once dbg t progs frames
+      loop dbg t progs frames
     else pure frames
 
-schedule :: Int -> [Program] -> Frame -> Machine -> IO ()
-schedule timesteps programs frame machine =
+schedule :: Bool -> Int -> [Program] -> Frame -> Machine -> IO ()
+schedule dbg timesteps programs frame machine =
   let n = length programs
-      execution = loop timesteps programs (replicate n frame) -- TODO: not once!
+      execution = loop dbg timesteps programs (replicate n frame) -- TODO: not once!
       (machine', logs) = execute (traceOf execution) machine
    in do
-    print machine'
     forM_ logs putStrLn

@@ -18,4 +18,4 @@ p2 = program $ do
   spinUnlock 0 2
 
 main = do
-  schedule 5 [p1, p2] (frame 5) (machine 10)
+  schedule False 5 [p1, p2] (frame 5) (machine 10)
