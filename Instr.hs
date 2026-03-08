@@ -61,6 +61,21 @@ runInstr (Instr op (Num a) (Num b)) f =
         writeMem b 1
       f <- mapPcM (+ 1) f
       pure f
+    Br -> do
+      f <- mapPcM (+ a) f
+      pure f
+    Btr -> do
+      x <- readRegM b f
+      if x == 1
+        then
+          mapPcM (+ a) f
+        else pure f
+    Bfs -> do
+      x <- readRegM b f
+      if x == 0
+        then
+          mapPcM (+ a) f
+        else pure f
     _ -> pure f
 
 runInstr (Instr op (Msg a) (Num b)) f =
