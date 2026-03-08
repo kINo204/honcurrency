@@ -2,7 +2,7 @@
 module Instr
   ( Instr (..),
     Operator (..),
-    Operand,
+    Operand (..),
     runInstr,
   )
 where
@@ -25,13 +25,14 @@ data Operator
     Prt | Prs | Err
   deriving (Show)
 
-type Operand = Int -- TODO: Nil operand
+data Operand = Num Int | Msg String -- TODO: Nil operand
+  deriving (Show)
 
 data Instr = Instr Operator Operand Operand
   deriving (Show)
 
 runInstr :: Instr -> Frame -> Execution Frame
-runInstr (Instr op a b) f =
+runInstr (Instr op (Num a) (Num b)) f =
   case op of
     Add -> do
       x <- readRegM a f
@@ -60,4 +61,8 @@ runInstr (Instr op a b) f =
         writeMem b 1
       f <- mapPcM (+ 1) f
       pure f
+    _ -> pure f
+
+runInstr (Instr op (Msg a) (Num b)) f =
+  case op of
     _ -> pure f
