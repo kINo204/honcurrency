@@ -35,11 +35,23 @@ sub rd rs = emit $ Instr Sub (Num rd) (Num rs)
 imm :: Int -> Int -> Program
 imm rd i = emit $ Instr Imm (Num rd) (Num i)
 
+adi :: Int -> Int -> Program
+adi rd im = emit $ Instr Add (Num rd) (Num im)
+
+sbi :: Int -> Int -> Program
+sbi rd im = emit $ Instr Sub (Num rd) (Num im)
+
 lod :: Int -> Int -> Program
 lod rd ma = emit $ Instr Lod (Num rd) (Num ma)
 
 sto :: Int -> Int -> Program
 sto rs ma = emit $ Instr Sto (Num rs) (Num ma)
+
+ldr :: Int -> Int -> Program
+ldr rd rt = emit $ Instr Lod (Num rd) (Num rt)
+
+str :: Int -> Int -> Program
+str rs rt = emit $ Instr Sto (Num rs) (Num rt)
 
 cas :: Int -> Int -> Program
 cas rd ma = emit $ Instr Cas (Num rd) (Num ma)

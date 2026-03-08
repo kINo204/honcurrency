@@ -73,4 +73,4 @@ schedule dbg timesteps programs frame machine =
       execution = loop dbg timesteps programs (replicate n frame) -- TODO: not once!
       (machine', logs) = execute (traceOf execution) machine
    in do
-    forM_ logs putStrLn
+        forM_ logs putStrLn

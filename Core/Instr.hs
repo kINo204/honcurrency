@@ -40,8 +40,24 @@ runInstr (Instr op (Num a) (Num b)) f =
       f <- writeRegM a (x + y) f
       f <- mapPcM (+ 1) f
       pure f
+    Sub -> do
+      x <- readRegM a f
+      y <- readRegM b f
+      f <- writeRegM a (x - y) f
+      f <- mapPcM (+ 1) f
+      pure f
     Imm -> do
       f <- writeRegM a b f
+      f <- mapPcM (+ 1) f
+      pure f
+    Adi -> do
+      x <- readRegM a f
+      f <- writeRegM a (x + b) f
+      f <- mapPcM (+ 1) f
+      pure f
+    Sbi -> do
+      x <- readRegM a f
+      f <- writeRegM a (x - b) f
       f <- mapPcM (+ 1) f
       pure f
     Lod -> do
@@ -52,6 +68,18 @@ runInstr (Instr op (Num a) (Num b)) f =
     Sto -> do
       x <- readRegM a f
       writeMem b x
+      f <- mapPcM (+ 1) f
+      pure f
+    Ldr -> do
+      ma <- readRegM b f
+      m <- readMem ma
+      f <- writeRegM a m f
+      f <- mapPcM (+ 1) f
+      pure f
+    Str -> do
+      ma <- readRegM b f
+      x <- readRegM a f
+      writeMem ma x
       f <- mapPcM (+ 1) f
       pure f
     Cas -> do
