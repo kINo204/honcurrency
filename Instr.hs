@@ -45,8 +45,8 @@ runInstr (Instr op (Num a) (Num b)) f =
       f <- mapPcM (+ 1) f
       pure f
     Lod -> do
-      m <- readMem a
-      f <- writeRegM b m f
+      m <- readMem b
+      f <- writeRegM a m f
       f <- mapPcM (+ 1) f
       pure f
     Sto -> do
