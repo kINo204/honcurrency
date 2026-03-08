@@ -15,6 +15,5 @@ p2 = program $ do
   imm 0 123
   spinUnlock 0 2
 
-main :: IO ()
 main = do
   schedule 5 [p1, p2] (frame 5) (machine 10)
