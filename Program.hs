@@ -20,20 +20,20 @@ program = execWriter
 emit :: Instr -> Program
 emit i = tell [i]
 
-add :: Operand -> Operand -> Program
+add :: Int -> Int -> Program
 add a b = emit $ Instr Add a b
 
-sub :: Operand -> Operand -> Program
+sub :: Int -> Int -> Program
 sub a b = emit $ Instr Sub a b
 
-imm :: Operand -> Operand -> Program
+imm :: Int -> Int -> Program
 imm a b = emit $ Instr Imm a b
 
-lod :: Operand -> Operand -> Program
+lod :: Int -> Int -> Program
 lod a b = emit $ Instr Lod a b
 
-sto :: Operand -> Operand -> Program
+sto :: Int -> Int -> Program
 sto a b = emit $ Instr Sto a b
 
-cas :: Operand -> Operand -> Program
+cas :: Int -> Int -> Program
 cas a b = emit $ Instr Cas a b
