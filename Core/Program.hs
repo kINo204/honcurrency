@@ -1,7 +1,7 @@
 module Core.Program
   ( Program, 
     program,
-    add, sub, imm,
+    add, sub, imm, adi, sbi,
     lod, sto,
     cas,
     br, btr, bfs,
