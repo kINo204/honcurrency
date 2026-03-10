@@ -3,9 +3,8 @@ import Core.Program
 
 p1 = program $ do
   spinLock 0 2
-  imm 0 (-1)
   imm 1 10
-  add 1 0
+  sbi 1 1
   prt 1
   btr 1 $ Num (-2)
   spinUnlock 0 2
