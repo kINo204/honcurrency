@@ -5,7 +5,8 @@ module Core.Program
     add, sub, imm, adi, sbi,
     lod, sto,
     cas,
-    lab, br, btr, bfs, yld,
+    lab, br, btr, bfs,
+    yld, blk, pst,
     prt, prs,
 
     Operand(..),
@@ -106,6 +107,12 @@ bfs rs (Msg lab) = do
 
 yld :: Program
 yld = emit $ Instr Yld (Num 0) (Num 0)
+
+blk :: Program
+blk = emit $ Instr Blk (Num 0) (Num 0)
+
+pst :: Int -> Program
+pst tid = emit $ Instr Pst (Num tid) (Num 0)
 
 prt :: Int -> Program
 prt rs = emit $ Instr Prt (Num rs) (Num 0)

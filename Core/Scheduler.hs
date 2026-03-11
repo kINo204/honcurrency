@@ -16,17 +16,21 @@ traceOf = execWriterT
 
 step :: Bool -> Program -> Int -> Frame -> Trace Frame
 step dbg prog i f = do
-  let instr = prog !! pc f
-  when dbg $ tell [show (pc f) ++ ": " ++ show instr]
-  case instr of
-    (Instr Prt (Num rs) _) -> do
-      x <- lift $ readRegM rs f
-      tell ["R[" ++ show rs ++ "] = " ++ show x]
-      lift $ mapPcM (+ 1) f
-    (Instr Prs (Msg msg) _) -> do
-      tell [msg]
-      lift $ mapPcM (+ 1) f
-    _ -> lift $ runInstr instr i f
+  blocked <- lift $ isBlocked i
+  if blocked
+    then pure f
+    else do
+      let instr = prog !! pc f
+      when dbg $ tell [show (pc f) ++ ": " ++ show instr]
+      case instr of
+        (Instr Prt (Num rs) _) -> do
+          x <- lift $ readRegM rs f
+          tell ["R[" ++ show rs ++ "] = " ++ show x]
+          lift $ mapPcM (+ 1) f
+        (Instr Prs (Msg msg) _) -> do
+          tell [msg]
+          lift $ mapPcM (+ 1) f
+        _ -> lift $ runInstr instr i f
 
 stepN :: Bool -> Int -> Program -> Int -> Frame -> Trace Frame
 stepN dbg t prog i f
@@ -51,9 +55,12 @@ once dbg t progs frames =
 dones :: [Program] -> [Frame] -> Trace [Bool]
 dones progs frames =
   sequence
-    [ let done = pc f >= length p
-       in pure done
-      | (p, f) <- zip progs frames
+    [ let finished = pc f >= length p
+       in do
+        blocked <- lift $ isBlocked i
+        let done = finished || blocked
+        pure done
+      | (p, f, i) <- zip3 progs frames [0 .. length progs - 1]
     ]
 
 loop :: Bool -> Int -> [Program] -> [Frame] -> Trace [Frame]
@@ -83,7 +90,7 @@ schedule dbg timesteps nregs memsize programs =
   let n = length programs
       frames = replicate n $ frame nregs
       symtbls = map makeSymTbl programs
-      m = machine memsize symtbls
+      m = machine n memsize symtbls
       execution = loop dbg timesteps programs frames
       (machine', logs) = execute (traceOf execution) m
    in logs

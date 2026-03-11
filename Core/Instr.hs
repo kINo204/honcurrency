@@ -89,6 +89,12 @@ runInstr (Instr op (Num a) (Num b)) tid f =
       x <- readRegM b f
       let dpc = if x == 0 then a else 1
        in mapPcM (+ dpc) f
+    Blk -> do
+      block tid
+      mapPcM (+ 1) f
+    Pst -> do
+      post a
+      mapPcM (+ 1) f
     _ -> mapPcM (+ 1) f
 
 runInstr (Instr op (Msg a) (Num b)) tid f =

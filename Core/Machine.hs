@@ -3,6 +3,7 @@ module Core.Machine
     frame, machine,
     Execution (..),
     setPcM, mapPcM, readRegM, writeRegM, readMem, writeMem, findsym,
+    isBlocked, block, post
   )
 where
 
@@ -24,7 +25,9 @@ data Frame = Frame
 
 data Machine = Machine
   { mem :: Mem,
-    symtbls :: [SymTbl]
+    symtbls :: [SymTbl],
+    blocked :: Array Int Bool,
+    posted :: Array Int Bool
   }
   deriving (Show)
 
@@ -34,8 +37,13 @@ memory size = array (0, size - 1) [(i, 0) | i <- [0 .. size - 1]]
 frame :: Int -> Frame
 frame nregs = Frame 0 (memory nregs)
 
-machine :: Int -> [SymTbl] -> Machine
-machine sizeMem = Machine (memory sizeMem)
+machine :: Int -> Int -> [SymTbl] -> Machine
+machine nthreads sizeMem stbls =
+  Machine
+    (memory sizeMem)
+    stbls
+    (array (0, nthreads - 1) [(i, False) | i <- [0 .. nthreads - 1]])
+    (array (0, nthreads - 1) [(i, False) | i <- [0 .. nthreads - 1]])
 
 readReg :: Int -> Frame -> Int
 readReg i frame = regs frame ! i
@@ -88,10 +96,63 @@ readMem i = Execution $ \machine ->
 
 writeMem :: Int -> Int -> Execution ()
 writeMem i a = Execution $ \machine ->
-  let m = mem machine // [(i, a)] in (Machine m (symtbls machine), ())
+  let m = mem machine // [(i, a)]
+   in ( Machine
+          m
+          (symtbls machine)
+          (blocked machine)
+          (posted machine),
+        ()
+      )
 
 findsym :: Int -> String -> Execution Int
-findsym thread_id label = Execution $ \machine ->
-    let symtbl = symtbls machine !! thread_id
+findsym tid label = Execution $ \machine ->
+    let symtbl = symtbls machine !! tid
         lineno = fromMaybe (-1) $ Map.lookup label symtbl
      in (machine, lineno)
+
+isBlocked :: Int -> Execution Bool
+isBlocked tid = Execution $ \machine ->
+  (machine, blocked machine ! tid)
+
+setBlocked :: Int -> Bool -> Execution ()
+setBlocked tid blk = Execution $ \machine ->
+  ( Machine
+      (mem machine)
+      (symtbls machine)
+      (blocked machine // [(tid, blk)])
+      (posted machine),
+    ()
+  )
+
+isPosted :: Int -> Execution Bool
+isPosted tid = Execution $ \machine ->
+  (machine, posted machine ! tid)
+
+setPosted :: Int -> Bool -> Execution ()
+setPosted tid blk = Execution $ \machine ->
+  ( Machine
+      (mem machine)
+      (symtbls machine)
+      (blocked machine)
+      (posted machine // [(tid, blk)]),
+    ()
+  )
+
+block :: Int -> Execution ()
+block tid = do
+  is_posted <- isPosted tid
+  if is_posted
+    then
+      setPosted tid False
+    else
+      setBlocked tid True
+
+post :: Int -> Execution ()
+post tid = do
+  is_blocked <- isBlocked tid
+  if is_blocked
+    then
+      setBlocked tid False
+    else
+      setPosted tid True
