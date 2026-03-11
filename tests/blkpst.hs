@@ -12,12 +12,14 @@ blockAndPost1 = program $ do
 
 blockAndPost2 = program $ do
   imm 2 10
+  imm 0 0
   pst 0
   prt 2
 
 -- Test 2: Post before block
 -- Thread 0 posts to Thread 1 before it blocks.
 postBeforeBlock1 = program $ do
+  imm 1 1
   pst 1
   imm 1 5
   prt 1
@@ -41,6 +43,7 @@ multipleBlockers2 = program $ do -- tid 1
   prt 2
 
 multipleBlockers3 = program $ do -- tid 2
+  imm 1 1
   pst 1 -- Post to thread 1
   imm 3 3
   prt 3
@@ -50,10 +53,12 @@ multipleBlockers3 = program $ do -- tid 2
 chainedUnblocking1 = program $ do -- tid 0
   blk
   imm 1 1
+  imm 2 2
   pst 2
   prt 1
 
 chainedUnblocking2 = program $ do -- tid 1
+  imm 0 0
   pst 0
   imm 2 2
   prt 2
