@@ -70,10 +70,10 @@ sto :: Int -> Int -> Program
 sto rs ma = emit $ Instr Sto (Num rs) (Num ma)
 
 ldr :: Int -> Int -> Program
-ldr rd rt = emit $ Instr Lod (Num rd) (Num rt)
+ldr rd rt = emit $ Instr Ldr (Num rd) (Num rt)
 
 str :: Int -> Int -> Program
-str rs rt = emit $ Instr Sto (Num rs) (Num rt)
+str rs rt = emit $ Instr Str (Num rs) (Num rt)
 
 cas :: Int -> Int -> Program
 cas rd ma = emit $ Instr Cas (Num rd) (Num ma)
