@@ -1,4 +1,15 @@
 import Core.Program
+import Data.List (isInfixOf)
+import Control.Monad
+
+-- Helper function to check if a log contains expected output
+assert :: String -> [String] -> Bool
+assert expected = any (expected `isInfixOf`)
+
+-- Helper to print test result
+reportTest :: String -> Bool -> IO ()
+reportTest name passed =
+  putStrLn $ (if passed then "PASS" else "FAIL") ++ ": " ++ name
 
 -- Test: Simple unconditional branch `br`
 -- Jumps over the `imm 1 100` instruction. R1 should remain 0.
@@ -69,17 +80,17 @@ scopedLabels = program $ do
 
 main :: IO ()
 main =
-  let run p = schedule False 5 (frame 5) (machine 5) [p]
-   in do
-        putStrLn "--- Test: Simple `br` ---"
-        run unconditionalBranch
-        putStrLn "\n--- Test: `btr` (branch taken) ---"
-        run branchIfTrueTaken
-        putStrLn "\n--- Test: `btr` (branch not taken) ---"
-        run branchIfTrueNotTaken
-        putStrLn "\n--- Test: `bfs` (branch taken) ---"
-        run branchIfFalseTaken
-        putStrLn "\n--- Test: `bfs` (branch not taken) ---"
-        run branchIfFalseNotTaken
-        putStrLn "\n--- Test: Scoped labels ---"
-        run scopedLabels
+  do
+    let run p = schedule True 5 (frame 5) (machine 5) [p]
+        runTest name prog expected = do
+          let logs = run prog
+          let passed = all (`assert` logs) expected
+          reportTest name passed
+          unless passed $ mapM_ putStrLn logs
+    putStrLn "=== Labeling Tests ==="
+    runTest "Simple `br` (skip imm 1 100)" unconditionalBranch ["R[1] = 0"]
+    runTest "`btr` (branch taken, skip imm 2 100)" branchIfTrueTaken ["R[2] = 0"]
+    runTest "`btr` (branch not taken, execute imm 2 100)" branchIfTrueNotTaken ["R[2] = 100"]
+    runTest "`bfs` (branch taken, skip imm 2 100)" branchIfFalseTaken ["R[2] = 0"]
+    runTest "`bfs` (branch not taken, execute imm 2 100)" branchIfFalseNotTaken ["R[2] = 100"]
+    runTest "Scoped labels (procedure scope)" scopedLabels ["R[1] = 11", "R[2] = 22"]
