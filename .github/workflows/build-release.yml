@@ -17,9 +17,14 @@ jobs:
       with:
         ghc-version: '9.2.5'
 
+    - name: Run tests
+      run: |
+        pwsh -NoProfile -Command "& .\build.ps1 -Test"
+      shell: pwsh
+
     - name: Build examples
       run: |
-        pwsh -NoProfile -Command "& .\build.ps1"
+        pwsh -NoProfile -Command "& .\build.ps1 -Build"
       shell: pwsh
 
     - name: Upload binaries to release
