@@ -1,6 +1,5 @@
 import Conc.Spinlock
 import Core.Program
-import Control.Monad (forM_)
 
 p1 = program $ do
   spinLock 0 2
@@ -17,4 +16,4 @@ p2 = program $ do
   spinUnlock 0 2
 
 main = do
-  forM_ (schedule False 5 5 10 [p1, p2]) putStrLn
+  mapM_ putStrLn (schedule False 5 5 10 [p1, p2])
