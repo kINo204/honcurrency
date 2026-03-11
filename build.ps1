@@ -26,7 +26,7 @@ if ($Build) {
             exit $LASTEXITCODE
         }
     }
-    Write-Host "All examples built into build/ directory." -ForegroundColor -Green
+    Write-Host "All examples built into build/ directory." -ForegroundColor Green
 }
 
 if ($Test) {
