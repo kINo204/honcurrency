@@ -70,7 +70,7 @@ loop dbg t progs frames = do
 schedule :: Bool -> Int -> [Program] -> Frame -> Machine -> IO ()
 schedule dbg timesteps programs frame machine =
   let n = length programs
-      execution = loop dbg timesteps programs (replicate n frame) -- TODO: not once!
+      execution = loop dbg timesteps programs (replicate n frame)
       (machine', logs) = execute (traceOf execution) machine
    in do
         forM_ logs putStrLn
