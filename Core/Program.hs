@@ -5,7 +5,7 @@ module Core.Program
     add, sub, imm, adi, sbi,
     lod, sto,
     cas,
-    lab, br, btr, bfs,
+    lab, br, btr, bfs, yld,
     prt, prs,
 
     frame, machine,
@@ -104,6 +104,9 @@ bfs rs dpc@(Num _) = emit $ Instr Bfs dpc (Num rs)
 bfs rs (Msg lab) = do
   n <- peek
   emit $ Instr Bfs (Msg $ suffix n lab) (Num rs)
+
+yld :: Program
+yld = emit $ Instr Yld (Num 0) (Num 0)
 
 prt :: Int -> Program
 prt rs = emit $ Instr Prt (Num rs) (Num 0)

@@ -16,27 +16,24 @@ traceOf :: Trace a -> Execution [String]
 traceOf = execWriterT
 
 step :: Bool -> Program -> SymTbl -> Frame -> Trace Frame
-step dbg prog symtbl f
-  | done = pure f
-  | otherwise =
-      let instr = prog !! pc f
-       in do
-            when dbg $ tell [show (pc f) ++ ": " ++ show instr]
-            case instr of
-              (Instr Prt (Num rs) _) -> do
-                x <- lift $ readRegM rs f
-                tell ["R[" ++ show rs ++ "] = " ++ show x]
-                lift $ mapPcM (+ 1) f
-              (Instr Prs (Msg msg) _) -> do
-                tell [msg]
-                lift $ mapPcM (+ 1) f
-              _ -> lift $ runInstr instr symtbl f
-  where
-    done = pc f >= length prog
+step dbg prog symtbl f = do
+  let instr = prog !! pc f
+  when dbg $ tell [show (pc f) ++ ": " ++ show instr]
+  case instr of
+    (Instr Prt (Num rs) _) -> do
+      x <- lift $ readRegM rs f
+      tell ["R[" ++ show rs ++ "] = " ++ show x]
+      lift $ mapPcM (+ 1) f
+    (Instr Prs (Msg msg) _) -> do
+      tell [msg]
+      lift $ mapPcM (+ 1) f
+    _ -> lift $ runInstr instr symtbl f
 
 stepN :: Bool -> Int -> Program -> SymTbl -> Frame -> Trace Frame
 stepN dbg t prog symtbl f
+  | pc f >= length prog = pure f
   | t == 1 = step dbg prog symtbl f
+  | (Instr Yld _ _) <- prog !! pc f = step dbg prog symtbl f
   | otherwise = do
       f <- step dbg prog symtbl f
       stepN dbg (t - 1) prog symtbl f
