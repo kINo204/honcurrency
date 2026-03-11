@@ -2,7 +2,7 @@ module Core.Machine
   ( Frame (..), Machine (..),
     frame, machine,
     Execution (..),
-    mapPcM, readRegM, writeRegM, readMem, writeMem,
+    setPcM, mapPcM, readRegM, writeRegM, readMem, writeMem,
   )
 where
 
@@ -72,6 +72,11 @@ writeRegM :: Int -> Int -> Frame -> Execution Frame
 writeRegM i a frame =
   Execution $
     let f = writeReg i a frame in (,f)
+
+setPcM :: Int -> Frame -> Execution Frame
+setPcM dest frame =
+  Execution $
+    let f = Frame dest (regs frame) in (,f)
 
 mapPcM :: (Int -> Int) -> Frame -> Execution Frame
 mapPcM g frame =

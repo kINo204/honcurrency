@@ -1,10 +1,11 @@
 module Core.Program
   ( Program, 
-    program,
+    program, procedure,
+
     add, sub, imm, adi, sbi,
     lod, sto,
     cas,
-    br, btr, bfs,
+    lab, br, btr, bfs,
     prt, prs,
 
     frame, machine,
@@ -13,18 +14,40 @@ module Core.Program
   )
 where
 
+import Control.Monad.State
 import Control.Monad.Writer
 import Core.Instr
 import Core.Machine
 import Core.Scheduler
 
-type Program = Writer [Instr] ()
+data Scope = Scope Int [Int]
+
+push :: Scope -> Scope
+push (Scope next stack) = Scope (next + 1) (next : stack)
+
+pop :: Scope -> Scope
+pop (Scope next stack) = Scope next (tail stack)
+
+type Program = StateT Scope (Writer [Instr]) ()
 
 program :: Program -> [Instr]
-program = execWriter
+program p = execWriter $ runStateT p (Scope 1 [0])
 
 emit :: Instr -> Program
 emit i = tell [i]
+
+procedure :: Program -> Program
+procedure program = do
+  scope <- get
+  put $ push scope
+  program
+  scope <- get
+  put $ pop scope
+
+peek :: StateT Scope (Writer [Instr]) Int
+peek = do
+  Scope _ stack <- get
+  return $ head stack
 
 add :: Int -> Int -> Program
 add rd rs = emit $ Instr Add (Num rd) (Num rs)
@@ -56,17 +79,31 @@ str rs rt = emit $ Instr Sto (Num rs) (Num rt)
 cas :: Int -> Int -> Program
 cas rd ma = emit $ Instr Cas (Num rd) (Num ma)
 
+suffix :: Int -> String -> String
+suffix scopeNo str = str ++ "@" ++ show scopeNo
+
+lab :: String -> Program
+lab label = do
+  n <- peek
+  emit $ Instr Lab (Msg $ suffix n label) (Num 0)
+
 br :: Operand -> Program
 br dpc@(Num _) = emit $ Instr Br dpc (Num 0)
-br lab@(Msg _) = emit $ Instr Br lab (Num 0)
+br (Msg lab) = do
+  n <- peek
+  emit $ Instr Br (Msg $ suffix n lab) (Num 0)
 
 btr :: Int -> Operand -> Program
 btr rs dpc@(Num _) = emit $ Instr Btr dpc (Num rs)
-btr rs lab@(Msg _) = emit $ Instr Btr lab (Num rs)
+btr rs (Msg lab) = do
+  n <- peek
+  emit $ Instr Btr (Msg $ suffix n lab) (Num rs)
 
 bfs :: Int -> Operand -> Program
 bfs rs dpc@(Num _) = emit $ Instr Bfs dpc (Num rs)
-bfs rs lab@(Msg _) = emit $ Instr Bfs lab (Num rs)
+bfs rs (Msg lab) = do
+  n <- peek
+  emit $ Instr Bfs (Msg $ suffix n lab) (Num rs)
 
 prt :: Int -> Program
 prt rs = emit $ Instr Prt (Num rs) (Num 0)
