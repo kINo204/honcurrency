@@ -59,10 +59,10 @@ imm :: Int -> Int -> Program
 imm rd i = emit $ Instr Imm (Num rd) (Num i)
 
 adi :: Int -> Int -> Program
-adi rd im = emit $ Instr Add (Num rd) (Num im)
+adi rd im = emit $ Instr Adi (Num rd) (Num im)
 
 sbi :: Int -> Int -> Program
-sbi rd im = emit $ Instr Sub (Num rd) (Num im)
+sbi rd im = emit $ Instr Sbi (Num rd) (Num im)
 
 lod :: Int -> Int -> Program
 lod rd ma = emit $ Instr Lod (Num rd) (Num ma)

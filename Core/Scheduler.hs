@@ -2,8 +2,7 @@ module Core.Scheduler (schedule) where
 
 import Prelude as P
 import Control.Monad
-import Control.Monad.Trans
-import Control.Monad.Trans.Writer hiding (pass)
+import Control.Monad.Writer hiding (pass)
 import Core.Instr
 import Core.Machine
 import Data.Map qualified as Map
@@ -83,11 +82,10 @@ symtbl instrs = symtbl' instrs 0
                 Instr Lab (Msg l) _ -> Map.insert l lineNo rest
                 _ -> rest
 
-schedule :: Bool -> Int -> Frame -> Machine -> [Program] -> IO ()
+schedule :: Bool -> Int -> Frame -> Machine -> [Program] -> [String]
 schedule dbg timesteps frame machine programs =
   let n = length programs
       symtbls = P.map symtbl programs
       execution = loop dbg timesteps programs symtbls (replicate n frame)
       (machine', logs) = execute (traceOf execution) machine
-   in do
-        forM_ logs putStrLn
+   in logs
