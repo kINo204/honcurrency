@@ -44,12 +44,14 @@ stepN dbg t prog i f
 once :: Bool -> Int -> [Program] -> [Frame] -> Trace [Frame]
 once dbg t progs frames =
   sequence
-    [ let done = pc f >= length p
+    [ let finished = pc f >= length p
        in do
-            when (dbg && not done) $
-              tell ["running thread " ++ show i]
-            stepN dbg t p i f
-      | (p, f, i) <- zip3 progs frames [0 .. length progs - 1]
+        blocked <- lift $ isBlocked tid
+        let done = finished || blocked
+        when (dbg && not done) $
+          tell ["\x1B[34mrunning thread " ++ show tid ++ "\x1B[0m"]
+        stepN dbg t p tid f
+      | (p, f, tid) <- zip3 progs frames [0 .. length progs - 1]
     ]
 
 dones :: [Program] -> [Frame] -> Trace [Bool]
@@ -57,10 +59,10 @@ dones progs frames =
   sequence
     [ let finished = pc f >= length p
        in do
-        blocked <- lift $ isBlocked i
+        blocked <- lift $ isBlocked tid
         let done = finished || blocked
         pure done
-      | (p, f, i) <- zip3 progs frames [0 .. length progs - 1]
+      | (p, f, tid) <- zip3 progs frames [0 .. length progs - 1]
     ]
 
 loop :: Bool -> Int -> [Program] -> [Frame] -> Trace [Frame]
@@ -85,12 +87,12 @@ makeSymTbl instrs = symtbl' instrs 0
                 Instr Lab (Msg l) _ -> Map.insert l lineno rest
                 _ -> rest
 
-schedule :: Bool -> Int -> Int -> Int -> [Program] -> [String]
-schedule dbg timesteps nregs memsize programs =
+schedule :: Bool -> Int -> Int -> Mem -> [Program] -> [String]
+schedule dbg timesteps nregs mem programs =
   let n = length programs
       frames = replicate n $ frame nregs
       symtbls = map makeSymTbl programs
-      m = machine n memsize symtbls
+      m = machine n mem symtbls
       execution = loop dbg timesteps programs frames
       (machine', logs) = execute (traceOf execution) m
    in logs

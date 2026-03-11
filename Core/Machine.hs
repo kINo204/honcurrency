@@ -1,6 +1,6 @@
 module Core.Machine
-  ( Frame (..), Machine (..), SymTbl,
-    frame, machine,
+  ( Frame (..), Mem, Machine (..), SymTbl,
+    frame, machine, memory,
     Execution (..),
     setPcM, mapPcM, readRegM, writeRegM, readMem, writeMem, findsym,
     isBlocked, block, post
@@ -37,10 +37,10 @@ memory size = array (0, size - 1) [(i, 0) | i <- [0 .. size - 1]]
 frame :: Int -> Frame
 frame nregs = Frame 0 (memory nregs)
 
-machine :: Int -> Int -> [SymTbl] -> Machine
-machine nthreads sizeMem stbls =
+machine :: Int -> Mem -> [SymTbl] -> Machine
+machine nthreads mem stbls =
   Machine
-    (memory sizeMem)
+    mem
     stbls
     (array (0, nthreads - 1) [(i, False) | i <- [0 .. nthreads - 1]])
     (array (0, nthreads - 1) [(i, False) | i <- [0 .. nthreads - 1]])

@@ -8,6 +8,7 @@ import Control.Monad (unless)
 import Core.Instr (Instr)
 import Core.Program (schedule)
 import Data.List (isInfixOf)
+import Core.Machine
 
 -- Helper to print test result
 reportTest :: String -> Bool -> IO ()
@@ -31,7 +32,7 @@ check (c : cs) (l : ls)
 -- Test runners
 runTest :: String -> [[Instr]] -> [Check] -> IO ()
 runTest name progs checks = do
-  let logs = schedule False 10 10 10 progs
+  let logs = schedule False 10 10 (memory 10) progs
   let passed = check checks logs
   reportTest name passed
   unless passed $
