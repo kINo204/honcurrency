@@ -81,7 +81,7 @@ scopedLabels = program $ do
 main :: IO ()
 main =
   do
-    let run p = schedule True 5 (frame 5) (machine 5) [p]
+    let run p = schedule True 5 5 5 [p]
         runTest name prog expected = do
           let logs = run prog
           let passed = all (`assert` logs) expected

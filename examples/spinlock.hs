@@ -17,4 +17,4 @@ p2 = program $ do
   spinUnlock 0 2
 
 main = do
-  forM_ (schedule False 5 (frame 5) (machine 10) [p1, p2]) putStrLn
+  forM_ (schedule False 5 5 10 [p1, p2]) putStrLn

@@ -10,8 +10,6 @@ where
 
 import Control.Monad
 import Core.Machine
-import Data.Map qualified as Map
-import Data.Maybe (fromMaybe)
 
 data Operator
   = -- Arithmetic
@@ -34,16 +32,8 @@ data Operand = Num Int | Msg String -- TODO: Nil operand
 data Instr = Instr Operator Operand Operand
   deriving (Show)
 
-type SymTbl = Map.Map String Int
-
-findsym :: SymTbl -> String -> Execution Int
-findsym symtbl label =
-  pure $
-    fromMaybe (-1) $
-      Map.lookup label symtbl
-
-runInstr :: Instr -> SymTbl -> Frame -> Execution Frame
-runInstr (Instr op (Num a) (Num b)) symtbl f =
+runInstr :: Instr -> Int -> Frame -> Execution Frame
+runInstr (Instr op (Num a) (Num b)) i f =
   case op of
     Add -> do
       x <- readRegM a f
@@ -113,24 +103,24 @@ runInstr (Instr op (Num a) (Num b)) symtbl f =
        in mapPcM (+ dpc) f
     _ -> mapPcM (+ 1) f
 
-runInstr (Instr op (Msg a) (Num b)) symtbl f =
+runInstr (Instr op (Msg a) (Num b)) i f =
   case op of
     Br -> do
-      d <- findsym symtbl a
+      d <- findsym i a
       f <- setPcM d f
       pure f
     Btr -> do
       x <- readRegM b f
       if x /= 0
         then do
-          d <- findsym symtbl a
+          d <- findsym i a
           setPcM d f
         else mapPcM (+ 1) f
     Bfs -> do
       x <- readRegM b f
       if x == 0
         then do
-          d <- findsym symtbl a
+          d <- findsym i a
           setPcM d f
         else mapPcM (+ 1) f
     _ -> mapPcM (+ 1) f

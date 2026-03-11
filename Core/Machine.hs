@@ -1,17 +1,20 @@
 module Core.Machine
-  ( Frame (..), Machine (..),
+  ( Frame (..), Machine (..), SymTbl,
     frame, machine,
     Execution (..),
-    setPcM, mapPcM, readRegM, writeRegM, readMem, writeMem,
+    setPcM, mapPcM, readRegM, writeRegM, readMem, writeMem, findsym,
   )
 where
 
 import Control.Monad (ap, liftM)
 import Data.Array (Array, array, (!), (//))
+import Data.Map qualified as Map
+import Data.Maybe (fromMaybe)
 
 ---------------------------------------------------------------------
 
 type Mem = Array Int Int
+type SymTbl = Map.Map String Int
 
 data Frame = Frame
   { pc :: Int,
@@ -19,7 +22,11 @@ data Frame = Frame
   }
   deriving (Show)
 
-data Machine = Machine {mem :: Mem} deriving (Show)
+data Machine = Machine
+  { mem :: Mem,
+    symtbls :: [SymTbl]
+  }
+  deriving (Show)
 
 memory :: Int -> Mem
 memory size = array (0, size - 1) [(i, 0) | i <- [0 .. size - 1]]
@@ -27,7 +34,7 @@ memory size = array (0, size - 1) [(i, 0) | i <- [0 .. size - 1]]
 frame :: Int -> Frame
 frame nregs = Frame 0 (memory nregs)
 
-machine :: Int -> Machine
+machine :: Int -> [SymTbl] -> Machine
 machine sizeMem = Machine (memory sizeMem)
 
 readReg :: Int -> Frame -> Int
@@ -64,24 +71,16 @@ instance Functor Execution where
   fmap = liftM
 
 readRegM :: Int -> Frame -> Execution Int
-readRegM i frame =
-  Execution $
-    let a = readReg i frame in (,a)
+readRegM i frame = pure $ readReg i frame
 
 writeRegM :: Int -> Int -> Frame -> Execution Frame
-writeRegM i a frame =
-  Execution $
-    let f = writeReg i a frame in (,f)
+writeRegM i a frame = pure $ writeReg i a frame
 
 setPcM :: Int -> Frame -> Execution Frame
-setPcM dest frame =
-  Execution $
-    let f = Frame dest (regs frame) in (,f)
+setPcM dest frame = pure $ Frame dest (regs frame)
 
 mapPcM :: (Int -> Int) -> Frame -> Execution Frame
-mapPcM g frame =
-  Execution $
-    let f = mapPc g frame in (,f)
+mapPcM g frame = pure $ mapPc g frame
 
 readMem :: Int -> Execution Int
 readMem i = Execution $ \machine ->
@@ -89,4 +88,10 @@ readMem i = Execution $ \machine ->
 
 writeMem :: Int -> Int -> Execution ()
 writeMem i a = Execution $ \machine ->
-  let m = mem machine // [(i, a)] in (Machine m, ())
+  let m = mem machine // [(i, a)] in (Machine m (symtbls machine), ())
+
+findsym :: Int -> String -> Execution Int
+findsym thread_id label = Execution $ \machine ->
+    let symtbl = symtbls machine !! thread_id
+        lineno = fromMaybe (-1) $ Map.lookup label symtbl
+     in (machine, lineno)

@@ -87,8 +87,8 @@ yieldInLoop = program $ do
 main :: IO ()
 main =
   do
-    let runSingle p = schedule True 10 (frame 10) (machine 10) [p]
-        runDual p1 p2 = schedule True 2 (frame 10) (machine 10) [p1, p2]
+    let runSingle p = schedule True 10 10 10 [p]
+        runDual p1 p2 = schedule True 2 10 10 [p1, p2]
         runTest name prog expected = do
           let logs = runSingle prog
           let passed = all (`assert` logs) expected

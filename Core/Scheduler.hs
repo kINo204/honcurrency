@@ -1,6 +1,5 @@
 module Core.Scheduler (schedule) where
 
-import Prelude as P
 import Control.Monad
 import Control.Monad.Writer hiding (pass)
 import Core.Instr
@@ -15,8 +14,8 @@ type Trace a = WriterT [String] Execution a
 traceOf :: Trace a -> Execution [String]
 traceOf = execWriterT
 
-step :: Bool -> Program -> SymTbl -> Frame -> Trace Frame
-step dbg prog symtbl f = do
+step :: Bool -> Program -> Int -> Frame -> Trace Frame
+step dbg prog i f = do
   let instr = prog !! pc f
   when dbg $ tell [show (pc f) ++ ": " ++ show instr]
   case instr of
@@ -27,26 +26,26 @@ step dbg prog symtbl f = do
     (Instr Prs (Msg msg) _) -> do
       tell [msg]
       lift $ mapPcM (+ 1) f
-    _ -> lift $ runInstr instr symtbl f
+    _ -> lift $ runInstr instr i f
 
-stepN :: Bool -> Int -> Program -> SymTbl -> Frame -> Trace Frame
-stepN dbg t prog symtbl f
+stepN :: Bool -> Int -> Program -> Int -> Frame -> Trace Frame
+stepN dbg t prog i f
   | pc f >= length prog = pure f
-  | t == 1 = step dbg prog symtbl f
-  | (Instr Yld _ _) <- prog !! pc f = step dbg prog symtbl f
+  | t == 1 = step dbg prog i f
+  | (Instr Yld _ _) <- prog !! pc f = step dbg prog i f
   | otherwise = do
-      f <- step dbg prog symtbl f
-      stepN dbg (t - 1) prog symtbl f
+      f <- step dbg prog i f
+      stepN dbg (t - 1) prog i f
 
-once :: Bool -> Int -> [Program] -> [SymTbl] -> [Frame] -> Trace [Frame]
-once dbg t progs symtbls frames =
+once :: Bool -> Int -> [Program] -> [Frame] -> Trace [Frame]
+once dbg t progs frames =
   sequence
     [ let done = pc f >= length p
        in do
             when (dbg && not done) $
               tell ["running thread " ++ show i]
-            stepN dbg t p s f
-      | (p, f, s, i) <- zip4 progs frames symtbls [1 .. (length progs)]
+            stepN dbg t p i f
+      | (p, f, i) <- zip3 progs frames [0 .. length progs - 1]
     ]
 
 dones :: [Program] -> [Frame] -> Trace [Bool]
@@ -57,32 +56,34 @@ dones progs frames =
       | (p, f) <- zip progs frames
     ]
 
-loop :: Bool -> Int -> [Program] -> [SymTbl] -> [Frame] -> Trace [Frame]
-loop dbg t progs symtbls frames = do
+loop :: Bool -> Int -> [Program] -> [Frame] -> Trace [Frame]
+loop dbg t progs frames = do
   ds <- dones progs frames
   if not $ and ds
     then do
-      frames <- once dbg t progs symtbls frames
-      loop dbg t progs symtbls frames
+      frames <- once dbg t progs frames
+      loop dbg t progs frames
     else pure frames
 
-symtbl :: Program -> SymTbl
-symtbl instrs = symtbl' instrs 0
+makeSymTbl :: Program -> SymTbl
+makeSymTbl instrs = symtbl' instrs 0
   where
     symtbl' :: Program -> Int -> SymTbl
-    symtbl' instrs lineNo
-      | P.null instrs = Map.empty
+    symtbl' instrs lineno
+      | null instrs = Map.empty
       | otherwise =
           let i : is = instrs
-              rest = symtbl' is (lineNo + 1)
+              rest = symtbl' is (lineno + 1)
            in case i of
-                Instr Lab (Msg l) _ -> Map.insert l lineNo rest
+                Instr Lab (Msg l) _ -> Map.insert l lineno rest
                 _ -> rest
 
-schedule :: Bool -> Int -> Frame -> Machine -> [Program] -> [String]
-schedule dbg timesteps frame machine programs =
+schedule :: Bool -> Int -> Int -> Int -> [Program] -> [String]
+schedule dbg timesteps nregs memsize programs =
   let n = length programs
-      symtbls = P.map symtbl programs
-      execution = loop dbg timesteps programs symtbls (replicate n frame)
-      (machine', logs) = execute (traceOf execution) machine
+      frames = replicate n $ frame nregs
+      symtbls = map makeSymTbl programs
+      m = machine memsize symtbls
+      execution = loop dbg timesteps programs frames
+      (machine', logs) = execute (traceOf execution) m
    in logs

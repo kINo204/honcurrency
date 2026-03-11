@@ -8,7 +8,6 @@ module Core.Program
     lab, br, btr, bfs, yld,
     prt, prs,
 
-    frame, machine,
     Operand(..),
     schedule,
   )
