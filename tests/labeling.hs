@@ -1,15 +1,6 @@
 import Core.Program
-import Data.List (isInfixOf)
 import Control.Monad
-
--- Helper function to check if a log contains expected output
-assert :: String -> [String] -> Bool
-assert expected = any (expected `isInfixOf`)
-
--- Helper to print test result
-reportTest :: String -> Bool -> IO ()
-reportTest name passed =
-  putStrLn $ (if passed then "PASS" else "FAIL") ++ ": " ++ name
+import Utils.Test
 
 -- Test: Simple unconditional branch `br`
 -- Jumps over the `imm 1 100` instruction. R1 should remain 0.
@@ -81,16 +72,33 @@ scopedLabels = program $ do
 main :: IO ()
 main =
   do
-    let run p = schedule True 5 5 5 [p]
-        runTest name prog expected = do
-          let logs = run prog
-          let passed = all (`assert` logs) expected
-          reportTest name passed
-          unless passed $ mapM_ putStrLn logs
     putStrLn "=== Labeling Tests ==="
-    runTest "Simple `br` (skip imm 1 100)" unconditionalBranch ["R[1] = 0"]
-    runTest "`btr` (branch taken, skip imm 2 100)" branchIfTrueTaken ["R[2] = 0"]
-    runTest "`btr` (branch not taken, execute imm 2 100)" branchIfTrueNotTaken ["R[2] = 100"]
-    runTest "`bfs` (branch taken, skip imm 2 100)" branchIfFalseTaken ["R[2] = 0"]
-    runTest "`bfs` (branch not taken, execute imm 2 100)" branchIfFalseNotTaken ["R[2] = 100"]
-    runTest "Scoped labels (procedure scope)" scopedLabels ["R[1] = 11", "R[2] = 22"]
+    runTest
+      "Simple `br` (skip imm 1 100)"
+      [unconditionalBranch]
+      [Assert "R[1] = 0"]
+
+    runTest
+      "`btr` (branch taken, skip imm 2 100)"
+      [branchIfTrueTaken]
+      [Assert "R[2] = 0"]
+
+    runTest
+      "`btr` (branch not taken, execute imm 2 100)"
+      [branchIfTrueNotTaken]
+      [Assert "R[2] = 100"]
+
+    runTest
+      "`bfs` (branch taken, skip imm 2 100)"
+      [branchIfFalseTaken]
+      [Assert "R[2] = 0"]
+
+    runTest
+      "`bfs` (branch not taken, execute imm 2 100)"
+      [branchIfFalseNotTaken]
+      [Assert "R[2] = 100"]
+
+    runTest
+      "Scoped labels (procedure scope)"
+      [scopedLabels]
+      [Assert "R[1] = 11", Assert "R[2] = 22"]
