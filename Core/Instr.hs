@@ -16,9 +16,9 @@ data Operator
   -- Memory Operations
     Lod | Sto | Ldr | Str |
   -- Branching & Control Flow
-    Lab | Br | Btr | Bfs |
+    Lab | Br | Btr | Bfs | Bgz | Blz | Bgez | Blez |
     -- Processor controlling
-    Yld | Blk | Pst |
+    Yld | Blk | Pst | Tid |
     -- Concurrency
     Cas |
     -- Debugging
@@ -89,11 +89,31 @@ runInstr (Instr op (Num a) (Num b)) tid f =
       x <- readRegM b f
       let dpc = if x == 0 then a else 1
        in mapPcM (+ dpc) f
+    Bgz -> do
+      x <- readRegM b f
+      let dpc = if x > 0 then a else 1
+       in mapPcM (+ dpc) f
+    Blz -> do
+      x <- readRegM b f
+      let dpc = if x < 0 then a else 1
+       in mapPcM (+ dpc) f
+    Bgez -> do
+      x <- readRegM b f
+      let dpc = if x >= 0 then a else 1
+       in mapPcM (+ dpc) f
+    Blez -> do
+      x <- readRegM b f
+      let dpc = if x <= 0 then a else 1
+       in mapPcM (+ dpc) f
     Blk -> do
       block tid
       mapPcM (+ 1) f
     Pst -> do
-      post a
+      x <- readRegM a f
+      post x
+      mapPcM (+ 1) f
+    Tid -> do
+      f <- writeRegM a tid f
       mapPcM (+ 1) f
     _ -> mapPcM (+ 1) f
 
@@ -112,6 +132,34 @@ runInstr (Instr op (Msg a) (Num b)) tid f =
     Bfs -> do
       x <- readRegM b f
       if x == 0
+        then do
+          d <- findsym tid a
+          setPcM d f
+        else mapPcM (+ 1) f
+    Bgz -> do
+      x <- readRegM b f
+      if x > 0
+        then do
+          d <- findsym tid a
+          setPcM d f
+        else mapPcM (+ 1) f
+    Blz -> do
+      x <- readRegM b f
+      if x < 0
+        then do
+          d <- findsym tid a
+          setPcM d f
+        else mapPcM (+ 1) f
+    Bgez -> do
+      x <- readRegM b f
+      if x >= 0
+        then do
+          d <- findsym tid a
+          setPcM d f
+        else mapPcM (+ 1) f
+    Blez -> do
+      x <- readRegM b f
+      if x <= 0
         then do
           d <- findsym tid a
           setPcM d f

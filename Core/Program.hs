@@ -3,14 +3,15 @@ module Core.Program
     program, procedure,
 
     add, sub, imm, adi, sbi,
-    lod, sto,
+    lod, sto, ldr, str,
     cas,
-    lab, br, btr, bfs,
-    yld, blk, pst,
+    lab, br, btr, bfs, bgz, blz, bgez, blez,
+    yld, blk, pst, tid,
     prt, prs,
 
     Operand(..),
     schedule,
+    memory, (//),
   )
 where
 
@@ -19,6 +20,7 @@ import Control.Monad.Writer
 import Core.Instr
 import Core.Machine
 import Core.Scheduler
+import Data.Array ((//))
 
 data Scope = Scope Int [Int]
 
@@ -105,8 +107,35 @@ bfs rs (Msg lab) = do
   n <- peek
   emit $ Instr Bfs (Msg $ suffix n lab) (Num rs)
 
+bgz :: Int -> Operand -> Program
+bgz rs dpc@(Num _) = emit $ Instr Bgz dpc (Num rs)
+bgz rs (Msg lab) = do
+  n <- peek
+  emit $ Instr Bgz (Msg $ suffix n lab) (Num rs)
+
+blz :: Int -> Operand -> Program
+blz rs dpc@(Num _) = emit $ Instr Blz dpc (Num rs)
+blz rs (Msg lab) = do
+  n <- peek
+  emit $ Instr Blz (Msg $ suffix n lab) (Num rs)
+
+bgez :: Int -> Operand -> Program
+bgez rs dpc@(Num _) = emit $ Instr Bgez dpc (Num rs)
+bgez rs (Msg lab) = do
+  n <- peek
+  emit $ Instr Bgez (Msg $ suffix n lab) (Num rs)
+
+blez :: Int -> Operand -> Program
+blez rs dpc@(Num _) = emit $ Instr Blez dpc (Num rs)
+blez rs (Msg lab) = do
+  n <- peek
+  emit $ Instr Blez (Msg $ suffix n lab) (Num rs)
+
 yld :: Program
 yld = emit $ Instr Yld (Num 0) (Num 0)
+
+tid :: Int -> Program
+tid rd = emit $ Instr Tid (Num rd) (Num 0)
 
 blk :: Program
 blk = emit $ Instr Blk (Num 0) (Num 0)
