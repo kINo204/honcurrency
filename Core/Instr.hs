@@ -100,8 +100,8 @@ runInstr (Instr op (Num a) (Num b)) f =
       x <- readRegM b f
       let dpc = if x == 0 then a else 1
        in mapPcM (+ dpc) f
-    _ -> pure f
+    _ -> mapPcM (+ 1) f
 
 runInstr (Instr op (Msg a) (Num b)) f =
   case op of
-    _ -> pure f
+    _ -> mapPcM (+ 1) f
