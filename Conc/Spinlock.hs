@@ -22,6 +22,6 @@ spinUnlock lock t = procedure $ do
 
 spinLockYld lock t = procedure $ do
   cas t lock
-  bfs t (Num 3)
+  bfs t $ Num 3
   yld
-  br (Num (-3))
+  br $ Num (-3)

@@ -1,6 +1,6 @@
 module Conc.Mutex
   (
-    Mutex (..),
+    Mutex,
     mutex,
     motion,
     mutexLock,

@@ -1,6 +1,6 @@
 {- HLINT ignore "Eta reduce" -}
 module Utils.Queue
-  ( Queue (..),
+  ( Queue,
     queue,
     motion,
     enqueue,
