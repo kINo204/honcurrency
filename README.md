@@ -1,4 +1,4 @@
-# Honcurrency - Mini Concurrent Execution Model (Haskell)
+# Honcurrency - Mini Concurrent Execution Model in Haskell
 
 This project builds a small, interpretable model of concurrency. It defines:
 1) A tiny instruction set with branching, memory ops, and concurrency primitives.
@@ -56,16 +56,17 @@ Behavioral tests live in `tests/`:
 This is plain Haskell. If you use GHC:
 
 ```bash
-ghc -O0 -threaded examples/semaphore.hs
+.\build.ps1 -Build
 .\examples\semaphore.exe
 ```
 
 Run tests similarly, e.g.:
 
 ```bash
-ghc -O0 -threaded tests/semaphore.hs
-.\tests\semaphore.exe
+.\build.ps1 -Test
 ```
+
+You can also use the built executables of all examples from the release.
 
 ## What This Demonstrates (For Interviews)
 - **Concurrency understanding**: lock/semaphore/condvar semantics and composition.
