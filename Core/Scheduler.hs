@@ -15,8 +15,8 @@ traceOf :: Trace a -> Execution [String]
 traceOf = execWriterT
 
 step :: Bool -> Program -> Int -> Frame -> Trace Frame
-step dbg prog i f = do
-  blocked <- lift $ isBlocked i
+step dbg prog tid f = do
+  blocked <- lift $ isBlocked tid
   if blocked
     then pure f
     else do
@@ -30,16 +30,16 @@ step dbg prog i f = do
         (Instr Prs (Msg msg) _) -> do
           tell [msg]
           lift $ mapPcM (+ 1) f
-        _ -> lift $ runInstr instr i f
+        _ -> lift $ runInstr instr tid f
 
 stepN :: Bool -> Int -> Program -> Int -> Frame -> Trace Frame
-stepN dbg t prog i f
+stepN dbg t prog tid f
   | pc f >= length prog = pure f
-  | t == 1 = step dbg prog i f
-  | (Instr Yld _ _) <- prog !! pc f = step dbg prog i f
+  | t == 1 = step dbg prog tid f
+  | (Instr Yld _ _) <- prog !! pc f = step dbg prog tid f
   | otherwise = do
-      f <- step dbg prog i f
-      stepN dbg (t - 1) prog i f
+      f <- step dbg prog tid f
+      stepN dbg (t - 1) prog tid f
 
 once :: Bool -> Int -> [Program] -> [Frame] -> Trace [Frame]
 once dbg t progs frames =
