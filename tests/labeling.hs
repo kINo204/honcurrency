@@ -1,5 +1,5 @@
-import Core.Program
 import Control.Monad
+import Core.Program
 import Utils.Test
 
 -- Test: Simple unconditional branch `br`
@@ -72,39 +72,41 @@ scopedLabels = program $ do
 main :: IO ()
 main =
   do
+    let mem = memory 10
+
     putStrLn "=== Labeling Tests ==="
     runTest
       "Simple `br` (skip imm 1 100)"
       [unconditionalBranch]
-      []
+      mem
       [Assert "R[1] = 0"]
 
     runTest
       "`btr` (branch taken, skip imm 2 100)"
       [branchIfTrueTaken]
-      []
+      mem
       [Assert "R[2] = 0"]
 
     runTest
       "`btr` (branch not taken, execute imm 2 100)"
       [branchIfTrueNotTaken]
-      []
+      mem
       [Assert "R[2] = 100"]
 
     runTest
       "`bfs` (branch taken, skip imm 2 100)"
       [branchIfFalseTaken]
-      []
+      mem
       [Assert "R[2] = 0"]
 
     runTest
       "`bfs` (branch not taken, execute imm 2 100)"
       [branchIfFalseNotTaken]
-      []
+      mem
       [Assert "R[2] = 100"]
 
     runTest
       "Scoped labels (procedure scope)"
       [scopedLabels]
-      []
+      mem
       [Assert "R[1] = 11", Assert "R[2] = 22"]

@@ -78,39 +78,40 @@ yieldInLoop = program $ do
 main :: IO ()
 main =
   do
+    let mem = memory 10
     putStrLn "=== Yield Tests ==="
     runTest
       "Basic yield (set R1 to 42)"
       [basicYield]
-      []
-      [ Assert "R[1] = 42" ]
+      mem
+      [Assert "R[1] = 42"]
 
     runTest
       "Yield in single-threaded (R1=99, R2=11)"
       [yieldSingleThread]
-      []
-      [ Assert "R[1] = 99", Assert "R[2] = 11" ]
+      mem
+      [Assert "R[1] = 99", Assert "R[2] = 11"]
 
     runTest
       "Multiple yields in sequence (R1=77)"
       [multipleYields]
-      []
-      [ Assert "R[1] = 77" ]
+      mem
+      [Assert "R[1] = 77"]
 
     runTest
       "Yield in loop (R1=3)"
       [yieldInLoop]
-      []
-      [ Assert "R[1] = 3" ]
+      mem
+      [Assert "R[1] = 3"]
 
     runTest
       "Yield fairness (R1=15)"
       [yieldFairness]
-      []
-      [ Assert "R[1] = 15" ]
+      mem
+      [Assert "R[1] = 15"]
 
     runTest
       "Multi-threaded yield (R1=11, R1=6)"
       [yieldMultithread, thread2]
-      []
-      [ Assert "R[2] = 6", Assert "R[1] = 11" ]
+      mem
+      [Assert "R[2] = 6", Assert "R[1] = 11"]

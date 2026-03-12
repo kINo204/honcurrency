@@ -71,26 +71,27 @@ chainedUnblocking3 = program $ do -- tid 2
 main :: IO ()
 main = do
   putStrLn "=== Concurrency (Block/Post) Tests ==="
+  let mem = memory 10
   runTest
     "Simple block and post"
     [blockAndPost1, blockAndPost2]
-    []
+    mem
     [Assert "R[2] = 10", Assert "R[1] = 2"]
 
   runTest
     "Post before block"
     [postBeforeBlock1, postBeforeBlock2]
-    []
+    mem
     [Assert "R[1] = 5", Assert "R[2] = 12"]
 
   runTest
     "Multiple blockers, one unblocked"
     [multipleBlockers1, multipleBlockers2, multipleBlockers3]
-    []
+    mem
     [Defute "R[1] = 1", Assert "R[3] = 3", Assert "R[2] = 2"]
 
   runTest
     "Chained unblocking"
     [chainedUnblocking1, chainedUnblocking2, chainedUnblocking3]
-    []
+    mem
     [Assert "R[2] = 2", Assert "R[1] = 1", Assert "R[3] = 3"]

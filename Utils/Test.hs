@@ -31,9 +31,9 @@ check (c : cs) (l : ls)
   | (Defute s) <- c = not (any (s `isInfixOf`) (l : ls)) && check cs (l : ls)
 
 -- Test runners
-runTest :: String -> [[Instr]] -> [(Int, Int)] -> [Check] -> IO ()
-runTest name progs motion checks = do
-  let logs = schedule False 10 10 (memory 10 // motion) progs
+runTest :: String -> [[Instr]] -> Mem -> [Check] -> IO ()
+runTest name progs mem checks = do
+  let logs = schedule True 10 10 mem progs
   let passed = check checks logs
   reportTest name passed
   unless passed $
