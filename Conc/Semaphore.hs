@@ -15,18 +15,20 @@ data Semaphore
   = Semaphore
   { lock :: Int,
     value :: Int,
-    queue :: Q.Queue
+    queue :: Q.Queue,
+    initVal :: Int
   }
 
-semaphore :: Int -> Int -> Int -> Semaphore
-semaphore addr qbeg qsize =
+semaphore :: Int -> Int -> Int -> Int -> Semaphore
+semaphore initVal addr qbeg qsize =
   Semaphore
     addr
     (addr + 1)
     (Q.queue (addr + 2) qbeg qsize)
+    initVal
 
 motion :: Semaphore -> [(Int, Int)]
-motion = Q.motion . queue
+motion s = Q.motion (queue s) ++ [(value s, initVal s)]
 
 semWait :: Semaphore -> Int -> Int -> Program
 semWait s t0 t1 = procedure $ do

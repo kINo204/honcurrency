@@ -54,11 +54,11 @@ nResWorker2 = program $ do semWait s_n2 0 1; imm 2 22; prt 2; blk
 nResWorker3 = program $ do semWait s_n2 0 1; imm 3 33; prt 3; blk
 
 -- Shared semaphore definitions for tests
-s = semaphore 100 200 10
+s = semaphore 0 100 200 10
 
-s_n1 = semaphore 110 210 10
+s_n1 = semaphore 1 110 210 10
 
-s_n2 = semaphore 120 220 10
+s_n2 = semaphore 2 120 220 10
 
 main :: IO ()
 main = do
@@ -69,23 +69,23 @@ main = do
   runTest
     "Simple wait and post"
     [semWaitPost1, semWaitPost2]
-    (mem // (motion s ++ [(101, 0)]))
+    (mem // motion s)
     [Assert "R[1] = 1"]
 
   runTest
     "Post before wait"
     [semPostWait1, semPostWait2]
-    (mem // (motion s ++ [(101, 0)]))
+    (mem // motion s)
     [Assert "R[1] = 1", Assert "R[2] = 2"]
 
   runTest
     "Mutual exclusion (N=1)"
     [mutexWorker1, mutexWorker2]
-    (mem // (motion s_n1 ++ [(111, 1), (counterAddr, 0)]))
+    (mem // (motion s_n1 ++ [(counterAddr, 0)]))
     [Assert "R[3] = 2"]
 
   runTest
     "N resources (N=2), 3 workers"
     [nResWorker1, nResWorker2, nResWorker3]
-    (mem // (motion s_n2 ++ [(121, 2)]))
+    (mem // motion s_n2)
     [Assert "R[1] = 11", Assert "R[2] = 22", Defute "R[3] = 33"]
