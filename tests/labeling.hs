@@ -76,29 +76,35 @@ main =
     runTest
       "Simple `br` (skip imm 1 100)"
       [unconditionalBranch]
+      []
       [Assert "R[1] = 0"]
 
     runTest
       "`btr` (branch taken, skip imm 2 100)"
       [branchIfTrueTaken]
+      []
       [Assert "R[2] = 0"]
 
     runTest
       "`btr` (branch not taken, execute imm 2 100)"
       [branchIfTrueNotTaken]
+      []
       [Assert "R[2] = 100"]
 
     runTest
       "`bfs` (branch taken, skip imm 2 100)"
       [branchIfFalseTaken]
+      []
       [Assert "R[2] = 0"]
 
     runTest
       "`bfs` (branch not taken, execute imm 2 100)"
       [branchIfFalseNotTaken]
+      []
       [Assert "R[2] = 100"]
 
     runTest
       "Scoped labels (procedure scope)"
       [scopedLabels]
+      []
       [Assert "R[1] = 11", Assert "R[2] = 22"]

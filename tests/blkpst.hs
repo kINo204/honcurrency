@@ -74,19 +74,23 @@ main = do
   runTest
     "Simple block and post"
     [blockAndPost1, blockAndPost2]
+    []
     [Assert "R[2] = 10", Assert "R[1] = 2"]
 
   runTest
     "Post before block"
     [postBeforeBlock1, postBeforeBlock2]
+    []
     [Assert "R[1] = 5", Assert "R[2] = 12"]
 
   runTest
     "Multiple blockers, one unblocked"
     [multipleBlockers1, multipleBlockers2, multipleBlockers3]
+    []
     [Defute "R[1] = 1", Assert "R[3] = 3", Assert "R[2] = 2"]
 
   runTest
     "Chained unblocking"
     [chainedUnblocking1, chainedUnblocking2, chainedUnblocking3]
+    []
     [Assert "R[2] = 2", Assert "R[1] = 1", Assert "R[3] = 3"]
