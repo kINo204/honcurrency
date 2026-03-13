@@ -21,7 +21,12 @@ step dbg prog tid f = do
     then pure f
     else do
       let instr = prog !! pc f
-      when dbg $ tell [show (pc f) ++ ": " ++ show instr]
+      when dbg $
+        tell
+          [ "TID " ++ show tid ++ " " ++
+            "[PC=" ++ show (pc f) ++ "]: " ++
+            show instr
+          ]
       case instr of
         (Instr Prt (Num rs) _) -> do
           x <- lift $ readRegM rs f
@@ -49,7 +54,7 @@ once dbg t progs frames =
         blocked <- lift $ isBlocked tid
         let done = finished || blocked
         when (dbg && not done) $
-          tell ["\x1B[34mrunning thread " ++ show tid ++ "\x1B[0m"]
+          tell ["\x1B[34mScheduling TID = " ++ show tid ++ "\x1B[0m"]
         stepN dbg t p tid f
       | (p, f, tid) <- zip3 progs frames [0 .. length progs - 1]
     ]
