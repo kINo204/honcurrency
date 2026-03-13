@@ -1,6 +1,7 @@
 import Conc.Mutex as M
 import Conc.Semaphore as S
 import Core.Program
+import System.Directory.Internal.Prelude (getArgs)
 
 numObjects = semaphore 0 0 100 10 -- 0 objects at start
 
@@ -33,9 +34,11 @@ mem =
     // S.motion numBlanks
 
 main = do
+  args <- getArgs
+  let dbg = read $ head args :: Bool
   let m = 5
   let n = 7
   let producers = [producer i | i <- [0 .. m]]
   let consumers = [consumer i | i <- [0 .. n]]
-  let logs = schedule False 5 10 mem (producers ++ consumers)
+  let logs = schedule dbg 5 10 mem (producers ++ consumers)
   mapM_ putStrLn logs

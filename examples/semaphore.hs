@@ -1,5 +1,6 @@
 import Conc.Semaphore
 import Core.Program
+import System.Directory.Internal.Prelude (getArgs)
 
 -- An example of using semaphores to manage a pool of resources.
 -- There are more workers (threads) than available resources.
@@ -42,9 +43,11 @@ worker = program $ do
 
 main :: IO ()
 main = do
+  args <- getArgs
+  let dbg = read $ head args :: Bool
   putStrLn $ "--- Running Semaphore Example (" ++ show numWorkers ++ " workers, " ++ show numResources ++ " resources) ---"
   let progs = replicate numWorkers worker
   let mem = motion sem
-  let trace = schedule False 10 5 (memory 1000 // mem) progs
+  let trace = schedule dbg 10 5 (memory 1000 // mem) progs
   mapM_ putStrLn trace
   putStrLn "--- Simulation Complete ---"
