@@ -57,7 +57,7 @@ This is plain Haskell. If you use GHC:
 
 ```bash
 .\build.ps1 -Build
-.\examples\semaphore.exe
+.\examples\semaphore.exe False
 ```
 
 Run tests similarly, e.g.:
