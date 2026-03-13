@@ -41,7 +41,7 @@ if ($Test) {
             exit $LASTEXITCODE
         }
         Write-Host "Running test $base..."
-        & "build/tests/$base.exe True"
+        & "build/tests/$base.exe" -True
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Test $base failed" -ForegroundColor Red
             exit $LASTEXITCODE
