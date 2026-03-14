@@ -30,7 +30,8 @@ step dbg prog tid f = do
       case instr of
         (Instr Prt (Num rs) _) -> do
           x <- lift $ readRegM rs f
-          tell ["R[" ++ show rs ++ "] = " ++ show x]
+          when dbg $ tell ["R[" ++ show rs ++ "] = "]
+          tell [show x]
           lift $ mapPcM (+ 1) f
         (Instr Prs (Msg msg) _) -> do
           tell [msg]
