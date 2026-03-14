@@ -52,14 +52,14 @@ mutexUnlock m t0 t1 = procedure $ do
   spinLockYld (lock m) t0
 
   Q.qlength (queue m) t0 t1
-  bfs t0 $ Msg "mtx_unlock_empty"
+  bfs t0 $ Msg "mtx_unlock_fast"
 
   Q.dequeue (queue m) t0 t1
   spinUnlock (lock m) t1
   pst t0
   br $ Msg "mtx_unlock_end"
 
-  lab "mtx_unlock_empty"
+  lab "mtx_unlock_fast"
   imm t0 0
   sto t0 (held m)
   spinUnlock (lock m) t0

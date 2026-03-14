@@ -46,14 +46,14 @@ condSignal c t0 t1 = procedure $ do
   spinLockYld (lock c) t0
 
   Q.qlength (queue c) t0 t1
-  bfs t0 $ Msg "empty"
+  bfs t0 $ Msg "cond_fast"
 
   Q.dequeue (queue c) t1 t0
   spinUnlock (lock c) t0
   pst t1
-  br $ Msg "end"
+  br $ Msg "cond_end"
 
-  lab "empty"
+  lab "cond_fast"
   spinUnlock (lock c) t0
 
-  lab "end"
+  lab "cond_end"
