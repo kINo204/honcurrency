@@ -50,8 +50,9 @@ enqueue q reg t = procedure $ do
   adi t 1
   sbi t (beg q + size q)
   bfs t $ Num 2
-  adi t (beg q + size q)
+  adi t $ size q
 
+  adi t $ beg q
   sto t (endPointer q)
 
 dequeue :: Queue -> Int -> Int -> Program
@@ -62,6 +63,7 @@ dequeue q reg t = procedure $ do
   adi t 1
   sbi t (beg q + size q)
   bfs t $ Num 2
-  adi t (beg q + size q)
+  adi t $ size q
 
+  adi t $ beg q
   sto t (begPointer q)
