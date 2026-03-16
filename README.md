@@ -1,88 +1,81 @@
-# Honcurrency - Mini Concurrent Execution Model in Haskell
+# Honcurrency: A Mini Concurrent Execution Model in Haskell
 
-This project builds a small, interpretable model of concurrency. It defines:
-1) A tiny instruction set with branching, memory ops, and concurrency primitives.
-2) A scheduler that simulates multi-threaded execution with yield/block/post.
-3) Synchronization primitives (spinlock, mutex, semaphore, condvar) built on top.
-4) A small DSL to assemble programs and a set of tests/examples to validate behavior.
+Honcurrency is a small, interpretable model of concurrency built from the ground up in Haskell. It provides a clear and testable environment for understanding the core concepts of multi-threaded programming.
 
-The goal is not performance, but clarity: make concurrency semantics explicit and testable.
+At its heart, Honcurrency defines a tiny instruction set, a simple scheduler, and a set of concurrency primitives. This is not a high-performance library, but a pedagogical tool designed to make the semantics of concurrency explicit and easy to explore.
 
-## Quick Map
-- `Core/Instr.hs`: instruction set + execution semantics
-- `Core/Machine.hs`: machine state (mem, regs, blocked/posted flags)
-- `Core/Scheduler.hs`: multi-threaded scheduling and tracing
-- `Core/Program.hs`: DSL for building instruction streams
-- `Conc/*.hs`: sync primitives built from core instructions
-- `Utils/Queue.hs`: queue implementation for wait lists
-- `tests/*.hs`: behavior-focused tests
-- `examples/*.hs`: runnable demos
+## Vision
 
-## Core Semantics (What Is Modeled)
-- **Thread state**: each thread has a frame (`pc`, registers).
-- **Memory**: shared array, addressable by instructions.
-- **Scheduling**: round-robin style stepping with a fixed timestep and `YLD`.
-- **Blocking**: `BLK` blocks a thread; `PST` posts to a thread (unblocks or marks pending).
-- **Atomicity**: `CAS` is modeled as a read + conditional write used for lock acquisition.
+The goal of Honcurrency is to demystify concurrency. By providing a clear, simple, and inspectable model, it helps developers and students build a strong mental model of how threads, memory, and synchronization primitives interact.
 
-## Instruction Highlights
-- `CAS`: reads memory and writes `1` if it was `0` (test-and-set style).
-- `YLD`: yields control early in the time slice.
-- `BLK` / `PST`: explicit block and post primitives for synchronization.
+## Features
 
-These are not hardware-accurate; they are pedagogical and sufficient to model core
-concurrency behavior at the algorithm level.
+Honcurrency implements a range of fundamental concurrency primitives, built upon a small set of core instructions:
 
-## Concurrency Primitives Implemented
-- Spinlock: `Conc/Spinlock.hs`
-- Mutex: `Conc/Mutex.hs` (spinlock + wait queue)
-- Semaphore: `Conc/Semaphore.hs` (counting + wait queue)
-- Condition Variable: `Conc/Cond.hs` (wait queue + mutex discipline)
+*   **Spinlock**: A simple, busy-waiting lock.
+*   **Mutex**: A lock that puts waiting threads to sleep instead of busy-waiting.
+*   **Semaphore**: A classic counting semaphore for managing access to a pool of resources.
+*   **Condition Variable**: A tool for threads to wait for a certain condition to become true.
+*   **Channels**: A way for threads to communicate with each other.
 
-## Examples
-- `examples/spinlock.hs`: basic spinlock usage
-- `examples/mutex.hs`: mutex lock/unlock with two threads
-- `examples/semaphore.hs`: resource pool modeled with a semaphore
+## How it Works
 
-## Tests
-Behavioral tests live in `tests/`:
-- `tests/blkpst.hs`: block/post semantics
-- `tests/labeling.hs`: label scoping and branching
-- `tests/yield.hs`: yield and interleaving
-- `tests/semaphore.hs`: semaphore correctness cases
-- `tests/cond.hs`: condition variable semantics
+Honcurrency is built in layers:
 
-## How to Run
-This is plain Haskell. If you use GHC:
+1.  **Core**: The `Core` modules define the fundamental components of the execution model:
+    *   `Instr.hs`: A tiny instruction set with branching, memory operations, and concurrency primitives.
+    *   `Machine.hs`: The state of the machine, including shared memory, registers, and thread states.
+    *   `Scheduler.hs`: A simple, round-robin scheduler that simulates the execution of multiple threads.
+    *   `Program.hs`: A DSL for writing programs in the instruction set.
 
-```bash
-.\build.ps1 -Build
-.\examples\semaphore.exe False
-```
+2.  **Concurrency Primitives**: The `Conc` modules implement the concurrency primitives on top of the core instruction set.
 
-Run tests similarly, e.g.:
+3.  **Utilities**: The `Utils` modules provide helpful data structures, like a queue for managing waiting threads.
 
-```bash
-.\build.ps1 -Test
-```
+## Getting Started
 
-You can also use the built executables of all examples from the release.
+### Prerequisites
 
-## What This Demonstrates (For Interviews)
-- **Concurrency understanding**: lock/semaphore/condvar semantics and composition.
-- **Systems modeling**: explicit instruction-level semantics and a scheduler.
-- **Programming language skills**: DSL design with `StateT + Writer`.
-- **Testing discipline**: behavior-driven tests around race-sensitive code.
-- **Engineering structure**: clean module boundaries and examples.
+*   [GHC (Glasgow Haskell Compiler)](https://www.haskell.org/ghc/)
 
-## Known Simplifications / Limitations
-- `CAS` is simplified (test-and-set semantics).
-- No memory consistency model; all operations are effectively sequentially consistent.
-- Scheduler is deterministic and not preemptive beyond time slice and yield.
-- No fairness guarantees; starvation is possible in some cases.
+### Building and Running
 
-## Possible Next Steps
-- Expand CAS to full compare-and-swap semantics.
-- Add fairness metrics or randomized scheduling.
-- Add properties/invariants as tests (QuickCheck style).
-- Extend the instruction set with fences or atomic increments.
+A PowerShell build script (`build.ps1`) is provided for convenience.
+
+1.  **Build the project:**
+
+    ```bash
+    .\build.ps1 -Build
+    ```
+
+2.  **Run an example:**
+
+    ```bash
+    .\examples\semaphore.exe False
+    ```
+
+    The boolean argument to the example executables typically controls whether to show verbose tracing.
+
+3.  **Run the tests:**
+
+    ```bash
+    .\build.ps1 -Test
+    ```
+
+## What This Demonstrates
+
+Studying and experimenting with Honcurrency can help you:
+
+*   **Deepen your understanding of concurrency**: See how locks, semaphores, and condition variables are implemented.
+*   **Learn about systems modeling**: Understand how to model a simple computer architecture and scheduler.
+*   **Improve your Haskell skills**: Explore the use of `StateT` and `Writer` for building DSLs.
+*   **Develop testing discipline**: See how to write behavior-driven tests for concurrent code.
+
+## Known Simplifications and Limitations
+
+Honcurrency is a model, and as such, it makes some simplifications:
+
+*   The `CAS` (Compare-And-Swap) instruction is a simplified test-and-set.
+*   There is no memory consistency model; all operations are sequentially consistent.
+*   The scheduler is deterministic and not preemptive (beyond time slices and explicit yields).
+*   There are no fairness guarantees, so starvation is possible.
