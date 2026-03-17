@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 module Core.Machine
   ( Frame (..), Mem, Machine (..), SymTbl,
     frame, machine, memory,
@@ -64,9 +63,9 @@ instance Monad Execution where
   (>>=) :: Execution a -> (a -> Execution b) -> Execution b
   e0 >>= f =
     Execution $ \machine0 ->
-      let (!machine1, !a1) = execute e0 machine0
-          !e1 = f a1
-          (!machine2, !a2) = execute e1 machine1
+      let (machine1, a1) = execute e0 machine0
+          e1 = f a1
+          (machine2, a2) = execute e1 machine1
        in (machine2, a2)
 
 instance Applicative Execution where
