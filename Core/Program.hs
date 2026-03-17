@@ -15,8 +15,9 @@ module Core.Program
   )
 where
 
-import Control.Monad.State
-import Control.Monad.Writer
+import Control.Monad.Identity
+import Control.Monad.State.Strict
+import Control.Monad.Writer.Strict
 import Core.Instr
 import Core.Machine
 import Core.Scheduler
@@ -30,7 +31,7 @@ push (Scope next stack) = Scope (next + 1) (next : stack)
 pop :: Scope -> Scope
 pop (Scope next stack) = Scope next (tail stack)
 
-type Program = StateT Scope (Writer [Instr]) ()
+type Program = StateT Scope (WriterT [Instr] Identity) ()
 
 program :: Program -> [Instr]
 program p = execWriter $ runStateT p (Scope 1 [0])
