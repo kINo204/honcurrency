@@ -108,6 +108,7 @@ This is the main distinction:
 Channel receive is a good example. User code calls `recv` as if it were a single operation, but its implementation is a procedure composed from lower-level synchronization and machine instructions.
 
 ```haskell
+recv :: Int -> Channel -> Int -> Int -> Program
 recv rd chan t0 t1 = procedure $ do
   mutexLock (lock chan) t0 t1
   qlength (senders chan) t0 t1 -- no senders waiting, slow
@@ -135,7 +136,7 @@ The full definition is in [`Conc/Channel.hs`](https://github.com/kINo204/honcurr
 
 This is the core idea of Honcurrency's DSL: the same language writes both the user program and the primitive it calls. A user program can say `recv`; the library can define `recv` by locking, inspecting queues, blocking, posting, waiting on a condition variable, and loading from shared memory.
 
-Concurrency primitives are not assumed by the host runtime. They are assembled inside Honcurrency.
+The host runtime does not assume the presence of concurrency primitives. They are assembled inside Honcurrency.
 
 ## Run
 
