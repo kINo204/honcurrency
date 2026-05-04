@@ -65,13 +65,13 @@ counter = program $ do
 
 The counter above only prints locally. To make it interact with other threads, keep the same loop shape but replace `prt` with a channel operation.
 
-The channel example imports the concurrency library and defines a producer program like this:
+You can simply import the `Channel` library and define a producer program like this:
 
 ```haskell
 import Core.Program
 import Conc.Channel
 
-ch1 = channel 0 100 2
+chn = channel 0 100 2
 
 producer = program $ do
   lab "begin"
@@ -80,14 +80,14 @@ producer = program $ do
   br $ Msg "begin"
 ```
 
-This is the producer from [`examples/channel.hs`](https://github.com/kINo204/honcurrency/blob/002f8c1c7992d67b4105a496139fd3f37f7e927c/examples/channel.hs#L9-L13). It still looks like the counter: label, increment, loop. The difference is that the value in register `0` is sent through `ch1` instead of being printed.
+You can find the code at [`examples/channel.hs`](https://github.com/kINo204/honcurrency/blob/002f8c1c7992d67b4105a496139fd3f37f7e927c/examples/channel.hs#L9-L13). It still looks like the counter: label, increment, loop. The difference is that the value in register `0` is sent through `chn` instead of being printed.
 
 A receiver can then consume values from a channel and print them:
 
 ```haskell
 printer = program $ do
   lab "begin"
-  recv 0 ch2 1 2
+  recv 0 chn 1 2
   prt 0
   br $ Msg "begin"
 ```
@@ -132,7 +132,7 @@ recv rd chan t0 t1 = procedure $ do
   mutexUnlock (lock chan) t0 t1
 ```
 
-The full definition is in [`Conc/Channel.hs`](https://github.com/kINo204/honcurrency/blob/002f8c1c7992d67b4105a496139fd3f37f7e927c/Conc/Channel.hs#L65-L86).
+Find the full implementation in [`Conc/Channel.hs`](https://github.com/kINo204/honcurrency/blob/002f8c1c7992d67b4105a496139fd3f37f7e927c/Conc/Channel.hs#L65-L86).
 
 This is the core idea of Honcurrency's DSL: the same language writes both the user program and the primitive it calls. A user program can say `recv`; the library can define `recv` by locking, inspecting queues, blocking, posting, waiting on a condition variable, and loading from shared memory.
 
